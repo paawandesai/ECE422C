@@ -1,0 +1,36 @@
+/*
+ * Mastermind
+ * Jan 20, 2020
+ */
+
+package assignment2;
+
+import java.util.Scanner;
+
+public class Driver {
+    public static void main(String[] args) {
+    	boolean test = false;
+		int numGuesses = Game.config.guessNumber;
+		Scanner input = new Scanner(System.in);
+		SecretCodeGenerator secretCodeGenerator = Game.secretCodeGenerator;
+	    GameConfiguration config = Game.config;
+		System.out.println("Welcome to Mastermind.");
+		System.out.println("Do you want to play a new game? (Y/N):");
+		String toPlay = input.nextLine();
+		while(toPlay.equals("Y")) { //TODO: CHANGE THIS TO WHILE AT THE END
+			if(args.length != 0) {
+				if(args[0].equals("1")) {
+					test = true;
+				}
+			}
+			GuessList guessList = new GuessList();
+			Game newGame = new Game(secretCodeGenerator, config, test, input, guessList, numGuesses);
+			toPlay = newGame.runGame();
+		}
+	}
+
+    public static void start(Boolean isTesting, GameConfiguration config, SecretCodeGenerator generator) {
+        // TODO: complete this method
+		// We will call this method from our JUnit test cases.
+    }
+}

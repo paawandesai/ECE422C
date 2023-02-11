@@ -1,0 +1,42 @@
+package assignment2;
+
+public class Guess{
+	int codeLength = config.pegNumber;
+	String[] colors = config.colors;
+	int numberOfGuesses;
+	String guess;
+	public Guess(String guess) {
+		this.guess = guess;
+	}
+	public int isValidGuess() {
+		char guessChar;
+		String guessString;
+		if(guess.equals("HISTORY")) { 
+			
+			return 0;
+		}
+		else if(guess.length() != codeLength ) { 
+			return -1;
+		}
+		for(int i = 0; i < guess.length(); i++) { 
+			guessChar = guess.charAt(i);
+			guessString = Character.toString(guessChar);
+			if(Character.isLowerCase(guessChar)) { 
+				return -1;
+			}
+			guessString = Character.toString(guessChar);
+			if(checkValidColor(guessString) == -1) { 
+				return -1;
+			}
+		}
+		return 1;
+	}
+	public int checkValidColor(String guessColor) {
+		for(int i = 0; i < colors.length; i++) {
+			if(guessColor.equals(colors[i])) {
+				return 1;
+			}
+		}
+		return -1;
+	}
+}

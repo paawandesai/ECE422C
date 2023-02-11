@@ -1,0 +1,68 @@
+package assignment2;
+
+import java.util.Scanner;
+public class Game {
+	
+    private boolean isTesting;
+    private SecretCodeGenerator secretCodeGenerator;
+    public static GameConfiguration config;
+    private Scanner scanner;
+    public static int tester;
+
+    Game(boolean isTesting, SecretCodeGenerator secretCodeGenerator, GameConfiguration config, Scanner scanner) {
+        this.isTesting = isTesting;
+        this.secretCodeGenerator = secretCodeGenerator;
+        Game.config = config;
+        this.scanner = scanner;
+    }
+    public void runGame() {
+        String secretCode = secretCodeGenerator.getNewSecretCode();
+    	int guessCount = 0;
+        while (guessCount < config.guessNumber) {
+            System.out.print("Enter guess: ");
+            String guess = scanner.nextLine();
+            guessCount++;
+            if (guess.equals(secretCode)) {
+                System.out.println("You win in " + guessCount + " moves.");
+                break;
+            } else {
+                System.out.println(getResponse(guess, secretCode));
+            }
+            if (isTesting) {
+                System.out.println("Secret code: " + secretCode);
+            }
+        }
+        if (guessCount == config.guessNumber) {
+            System.out.println("You lose! The pattern was: " + secretCode);
+        }
+    }
+    public static Response getResponse(String guess, String secret) {
+        int blackPegs = 0, whitePegs = 0;
+        int[] secretCounts = new int[secret.length()];
+        int[] guessCounts = new int[guess.length()];
+        for (int i = 0; i < secret.length(); i++) {
+            if (secret.charAt(i) == guess.charAt(i)) {
+                blackPegs++;
+            } else {
+                secretCounts[i] = countPeg(secret.charAt(i), secret);
+                guessCounts[i] = countPeg(guess.charAt(i), guess);
+            }
+        }
+        for (int i = 0; i < secretCounts.length; i++) {
+            whitePegs += Math.min(secretCounts[i], guessCounts[i]);
+        }
+        whitePegs -= blackPegs;
+        return new Response(blackPegs, whitePegs);
+    }
+
+    private static int countPeg(char peg, String code) {
+        int count = 0;
+        for (int i = 0; i < code.length(); i++) {
+            if (code.charAt(i) == peg) {
+                count++;
+            }
+        }
+        return count;
+    }
+}
+

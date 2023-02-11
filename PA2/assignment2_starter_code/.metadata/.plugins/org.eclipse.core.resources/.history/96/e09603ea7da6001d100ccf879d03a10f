@@ -1,0 +1,39 @@
+/*
+ * Mastermind
+ * Jan 20, 2020
+ */
+
+package assignment2;
+
+import java.util.Scanner;
+
+public class Driver {
+    public static void main(String[] args) {
+    	start(true, Game.config, Game.secretCodeGenerator);
+	}
+
+    public static void start(Boolean isTesting, GameConfiguration config, SecretCodeGenerator generator) {
+        // TODO: complete this method
+		// We will call this method from our JUnit test cases.
+    	isTesting = true;
+		Game.config.guessNumber = 12;//Game.config.guessNumber;
+		String[] colors = {"B","G","O","P","R","Y"};
+		Game.config.colors = colors;
+		Game.config.pegNumber = 4;
+		Scanner input = new Scanner(System.in);
+		SecretCodeGenerator secretCodeGenerator = Game.secretCodeGenerator;
+		System.out.println("Welcome to Mastermind.");
+		System.out.println("Do you want to play a new game? (Y/N):");
+		String toPlay = input.nextLine();
+		while(toPlay.equals("Y")) { 
+			isTesting=true;
+		}
+			GuessList guessList = new GuessList();
+			Game newGame = new Game(secretCodeGenerator, config, isTesting, input, guessList, Game.config.guessNumber);
+			toPlay = newGame.runGame();
+		}
+		
+		
+    }
+    
+}

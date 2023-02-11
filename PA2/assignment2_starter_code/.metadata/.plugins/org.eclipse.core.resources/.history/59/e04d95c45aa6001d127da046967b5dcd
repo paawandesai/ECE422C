@@ -1,0 +1,81 @@
+package assignment2;
+
+import java.util.Scanner;
+public class Game {
+	private String secretCode;
+	private int numGuesses;
+	Scanner input;
+	GuessList currentList;
+	int valid;
+	boolean isTesting;
+	String play = "Y";
+	public  SecretCodeGenerator secretCodeGenerator;
+    public  GameConfiguration config;
+	public Game(SecretCodeGenerator secretCodeGenerator, GameConfiguration config,boolean isTesting, Scanner input, GuessList currentList, int numGuesses) {
+		this.config=config;
+		this.secretCodeGenerator = secretCodeGenerator;
+		secretCode = secretCodeGenerator.getNewSecretCode();
+		this.isTesting = isTesting;
+		this.input = input;
+		this.numGuesses = numGuesses;
+		this.currentList = currentList;
+		if(isTesting) { 
+			System.out.println("Secret code: " + secretCode);
+			System.out.println();
+		}
+	}
+	public String runGame() {
+		int size;
+		System.out.println("You have " + numGuesses + " guess(es) left.");
+		System.out.println("Enter guess:");
+		String guess = input.nextLine();
+		Guess newGuess = new Guess(guess);
+		
+		valid = newGuess.isValidGuess(); 
+		if(valid == 0) {
+			size = currentList.history.size();
+			if(size == 0) { 
+				System.out.println();
+				play = runGame();
+			}
+			else {
+				currentList.printHistory();
+				System.out.println();
+				play = runGame();
+			}
+		}
+		else if(valid==1) {
+			numGuesses--;
+			Pegs resultPegs = new Pegs(newGuess, this.secretCode); 
+			currentList.addGuess(newGuess.guess, resultPegs.pegs);
+			size = currentList.history.size();
+			System.out.println(currentList.history.get(size - 1));	
+			if(resultPegs.blackPegs == config.pegNumber) { 
+				System.out.println("You win!");
+				System.out.println();
+				System.out.println("Do you want to play a new game? (Y/N):");
+				play = input.nextLine();
+			}
+			else  if(numGuesses <= 0) { 
+				//TODO: lost game
+				System.out.println("You lose! The pattern was " + this.secretCode);
+				System.out.println();
+				System.out.println("Do you want to play a new game? (Y/N):");
+				play = input.nextLine();
+			}
+			
+			else {
+				System.out.println();
+				play = runGame();
+			}
+			
+		}
+		else { 
+			System.out.println("INVALID_GUESS");
+			System.out.println();
+			play = runGame();
+		}
+		return play;	
+	}
+}
+

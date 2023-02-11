@@ -1,0 +1,10 @@
+package assignment2;
+public class Guess {
+	int codeLength = config.pegNumber;
+	String[] colors;// = GameConfiguration.colors;
+	int numberOfGuesses;
+	String guess;
+	public Guess(String guess) {
+		this.guess = guess;
+	}
+}

@@ -1,0 +1,35 @@
+package assignment2;
+
+import java.util.Scanner;
+public class Game {
+	private String secretCode;
+	private int numGuesses;
+	Scanner input;
+	GuessList currentList;
+	int valid;
+	boolean isTesting;
+	String play = "Y";
+	private SecretCodeGenerator secretCodeGenerator;
+    public static GameConfiguration config;
+	public Game(SecretCodeGenerator secretCodeGenerator, GameConfiguration config,boolean isTesting, Scanner input, GuessList currentList, int numGuesses) {
+		Game.config=config;
+		secretCode = secretCodeGenerator.getNewSecretCode();
+		this.secretCodeGenerator = secretCodeGenerator;
+		this.isTesting = isTesting;
+		this.input = input;
+		this.numGuesses = numGuesses;
+		this.currentList = currentList;
+		if(isTesting) { //print Secret code if in test mode
+			System.out.println("Secret code: " + secretCode);
+			System.out.println();
+		}
+	}
+	public String runGame() {
+		int size;
+		System.out.println("You have " + numGuesses + " guess(es) left.");
+		System.out.println("Enter guess:");
+		String guess = input.nextLine(); // get guess
+		Guess newGuess = new Guess(guess);
+	}
+}
+
