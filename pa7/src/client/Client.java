@@ -8,6 +8,8 @@ import java.util.Scanner;
 import javafx.scene.layout.VBox;
 import other.AuctionConstants;
 import server.AuctionItem;
+import java.awt.Toolkit;
+
 
 public class Client {
     private static String username;
@@ -19,6 +21,7 @@ public class Client {
     public static void main(String[] args) {
  
         try {
+            Toolkit.getDefaultToolkit();
         	Socket socket = new Socket(AuctionConstants.SERVER_ADDRESS, AuctionConstants.SERVER_PORT);
             clientBackend = new ClientBackend(socket);
             auctionUI = new AuctionUI(clientGUI, clientBackend, auctionList);
