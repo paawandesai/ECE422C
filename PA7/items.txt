@@ -1,0 +1,3 @@
+1, Pencil, HB2 pencil, 2
+2, Spoon, Steel spoon, 5
+3, Macbook, Macbook Pro, 1000
