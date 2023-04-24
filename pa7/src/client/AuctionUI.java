@@ -46,7 +46,7 @@ public class AuctionUI {
         itemGridPane.setHgap(10);
         itemGridPane.setVgap(10);
 
-        // Create the refresh button
+        /* Create the refresh button
         Button refreshButton = new Button("Refresh");
         refreshButton.setOnAction(event -> refreshItems());
 
@@ -54,6 +54,7 @@ public class AuctionUI {
         HBox topHBox = new HBox(refreshButton);
         topHBox.setAlignment(Pos.CENTER_RIGHT);
         topHBox.setPadding(new Insets(10));
+        */
 
         // Add the item grid pane to the center VBox
         VBox centerVBox = new VBox(itemGridPane);
@@ -61,7 +62,7 @@ public class AuctionUI {
         centerVBox.setPadding(new Insets(10));
 
         // Add the top HBox and center VBox to the auction pane
-        auctionPane.setTop(topHBox);
+        //auctionPane.setTop(topHBox);
         auctionPane.setCenter(centerVBox);
 
         // Get the items from the server and add them to the item UI list
