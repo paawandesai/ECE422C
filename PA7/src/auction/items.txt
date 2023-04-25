@@ -1,0 +1,5 @@
+1, Pencil, HB2 pencil, 2
+2, Spoon, Steel spoon, 5
+3, Macbook, Macbook Pro, 1000
+4, Ferrari, Ferrari 250 GTO, 70000000
+5, Yacht, History Supreme Yacht, 4500000000

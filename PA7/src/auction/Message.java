@@ -4,6 +4,9 @@ class Message {
 	  String type;
 	  String input;
 	  int number;
+	  public String itemId;
+	  public double bidAmount;
+	  public int customerId;
 
 	  protected Message() {
 	    this.type = "";
@@ -21,4 +24,8 @@ class Message {
 	    this.number = number;
 	    System.out.println("client-side message created");
 	  }
+	public Message(String auctionItem, double bidAmount) {
+		this.itemId = String.valueOf(auctionItem);
+		
+	}
 	}
