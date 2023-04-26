@@ -2,76 +2,109 @@ package auction;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.Timer;
 
+import auction.Server.AuctionItemObserver;
+
 public class AuctionItem {
-	Integer auctionItemId;
-	String name;
+    Integer auctionItemId;
+    String name;
     String description;
     String startPrice;
     String highestBid;
-    boolean closed;
+    private boolean closed;
     private boolean sold;
-    int delay = 300000;
-    private Timer timer;
     private String highestBidderId;
-    
+    private int delay = 300000; // 5 minutes
+    private Timer timer;
+    private List<AuctionItemObserver> observers = new ArrayList<>();
 
-	public AuctionItem(Integer auctionItemId, String name, String description, String startPrice) {
-	    this.auctionItemId = auctionItemId;
-	    this.name = name;
-	    this.description = description;
-	    this.startPrice = startPrice;
-	    this.sold = false;
-	    this.timer = new Timer(300000, new ActionListener() {
-	      @Override
-	      public void actionPerformed(ActionEvent e) {
-	        sold = true;
-	        closed = true;
-	      }
-	    });
-	    timer.start();
-	}
-	public Integer getAuctionItemId() {
+    public AuctionItem(Integer auctionItemId, String name, String description, String startPrice) {
+        this.auctionItemId = auctionItemId;
+        this.name = name;
+        this.description = description;
+        this.startPrice = startPrice;
+        this.highestBid = startPrice;
+        this.highestBidderId = null;
+        this.sold = false;
+
+        this.timer = new Timer(delay, new ActionListener() {
+            private int counter = 0;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                counter++;
+                if (counter == 20) {
+                    closed = true;
+                    timer.stop();
+                }
+            }
+        });
+    }
+
+    public Integer getAuctionItemId() {
         return auctionItemId;
     }
+
     public String getName() {
         return name;
     }
+
     public String getDescription() {
         return description;
     }
+
     public String getStartPrice() {
         return startPrice;
     }
+
     public String getHighestBid() {
         return highestBid;
     }
+
     public void setHighestBid(String highestBid) {
-    	this.highestBid = highestBid;
+        this.highestBid = highestBid;
     }
-    public String getHighestBidder() {
-    	return highestBidderId;
+
+    public String getHighestBidderId() {
+        return highestBidderId;
     }
-    public synchronized boolean bid(String customerId, double bidAmount) {
-        if (closed() || bidAmount <= Integer.parseInt(customerId)) {
-          return false;
+    public void registerObserver(AuctionItemObserver observer) {
+        observers.add(observer);
+    }
+
+    public void unregisterObserver(AuctionItemObserver observer) {
+        observers.remove(observer);
+    }
+
+    public void notifyObservers() {
+        for (AuctionItemObserver observer : observers) {
+            observer.onUpdate(this);
         }
-        highestBid = String.valueOf(bidAmount);
+    }
+
+    public synchronized boolean bid(String customerId, String bidAmount) {
+        double amount = Double.parseDouble(bidAmount);
+        if (closed() || amount <= Double.parseDouble(highestBid) || amount <= Double.parseDouble(startPrice)) {
+            return false;
+        }
+        highestBid = bidAmount;
         highestBidderId = customerId;
+        timer.restart();
         return true;
-      }
+    }
 
     public synchronized void closeAuction() {
-      if (!closed()) {
-    	  sold = true;
-          timer.stop();
-          System.out.println("Auction for item " + auctionItemId + " closed. Sold to customer " + highestBidderId + " for " + highestBid);
+        if (!closed()) {
+            sold = true;
+            timer.stop();
+            System.out.println("Auction for item " + auctionItemId + " closed. Sold to customer " + highestBidderId + " for " + highestBid);
         }
-      }
+    }
 
-      public synchronized boolean closed() {
+    public synchronized boolean closed() {
         return sold || !timer.isRunning();
-      }
-    
+    }
 }

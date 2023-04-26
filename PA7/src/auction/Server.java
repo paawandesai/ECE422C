@@ -13,6 +13,8 @@ import com.google.gson.Gson;
 class Server extends Observable {
 	private List<AuctionItem> items = new ArrayList<>();
 	private ClientHandler handler;
+	private List<ClientHandler> clients = new ArrayList<>();
+
 
 	public static void main(String[] args) {
 		new Server().runServer();
@@ -29,7 +31,7 @@ class Server extends Observable {
 
 	private void setUpNetworking() throws Exception {
 		@SuppressWarnings("resource")
-		ServerSocket serverSock = new ServerSocket(4274);
+		ServerSocket serverSock = new ServerSocket(4275);
 		while (true) {
 			Socket clientSocket = serverSock.accept();
 			System.out.println("Connecting to... " + clientSocket);
@@ -43,27 +45,27 @@ class Server extends Observable {
 	protected void processRequest(String input, ClientHandler clientHandler) {
 		Gson gson = new Gson();
 		String[] parts = input.split(" ");
-	    if (parts.length == 3 && parts[0].equals("bid")) {
-	        int itemId = Integer.parseInt(parts[1]);
-	        double bidAmount = Double.parseDouble(parts[2]);
-	        boolean validBid = isValidBid(itemId, bidAmount);
-	        if (validBid) {
-	            // Notify all clients of new highest bid
-	            setChanged();
-	            notifyObservers(gson.toJson(new Message("newBid", "", itemId)));
-	            // Update the corresponding AuctionItem with the new bid amount
-	            for (AuctionItem item : items) {
-	                if (item.getAuctionItemId() == itemId) {
-	                    //item.setHighestBidder(clientHandler.getClientId());
-	                    item.setHighestBid(String.valueOf(bidAmount));
-	                    break;
-	                }
-	            }
-	        }
-	        // Send response to client
-	        Message outputMessage = new Message("output", Boolean.toString(validBid), 0);
-	        clientHandler.sendToClient(gson.toJson(outputMessage));
-	    }
+		if (parts.length == 3 && parts[0].equals("bid")) {
+			int itemId = Integer.parseInt(parts[1]);
+			String bidAmount = parts[2];
+			boolean validBid = isValidBid(itemId, bidAmount);
+			if (validBid) {
+				// Notify all clients of new highest bid
+				setChanged();
+				notifyObservers(gson.toJson(new Message("newBid", "", itemId)));
+				// Update the corresponding AuctionItem with the new bid amount
+				for (AuctionItem item : items) {
+					if (item.getAuctionItemId() == itemId) {
+						//item.setHighestBidder(clientHandler.getClientId());
+						item.setHighestBid(String.valueOf(bidAmount));
+						break;
+					}
+				}
+			}
+			// Send response to client
+			Message outputMessage = new Message("output", Boolean.toString(validBid), 0);
+			clientHandler.sendToClient(outputMessage);
+		}
 		else if (parts.length == 1 && parts[0].equals("items")) {
 			String fileName = "items.txt";
 			String fileContent = "";
@@ -78,22 +80,14 @@ class Server extends Observable {
 				e.printStackTrace();
 			}
 			Message outputMessage = new Message("output", fileContent, 0);
-			clientHandler.sendToClient(gson.toJson(outputMessage));
+			clientHandler.sendToClient(outputMessage);
 		} 
 		else {
 			String output = "Error: ";
-			clientHandler.sendToClient(gson.toJson(new Message("output", output, 0)));
+			clientHandler.sendToClient(new Message("output", output, 0));
 		}
 	}
 
-
-	private void sendItemList(ClientHandler clientHandler) {
-		List<AuctionItem> itemList = readItemsFromFile();
-		Gson gson = new Gson();
-		String itemListJson = gson.toJson(itemList);
-		Message message = new Message("items", itemListJson, 0);
-		clientHandler.sendToClient(gson.toJson(message));
-	}
 
 	List<AuctionItem> readItemsFromFile() {
 		List<AuctionItem> itemList = new ArrayList<>();
@@ -114,19 +108,43 @@ class Server extends Observable {
 		}
 		return itemList;
 	}
-	private synchronized boolean isValidBid(int itemId, double bidAmount) {
+	private synchronized boolean isValidBid(int itemId, String bidAmount) {
 		for (AuctionItem item : items) {
 			if (item.getAuctionItemId() == itemId) {
 				// Check if auction is still open
 				if (item.closed()) {
 					return false;
 				}
-				return item.bid(item.getHighestBidder(), bidAmount);
+				return item.bid(item.getHighestBidderId(), bidAmount);
 			}
 		}
 		// Item not found
 		return false;
 	}
+	public interface AuctionItemObserver {
+		void onUpdate(AuctionItem item);
+	}
+	public List<AuctionItem> getAuctionItems() {
+		return items;
+	}
+	public void broadcast(Message message) {
+	    for (ClientHandler client : clients) {
+	        client.sendToClient(message);
+	    }
+	}
+	public synchronized void addClient(ClientHandler client) {
+	    clients.add(client);
+	}
+
+	public synchronized void removeClient(ClientHandler client) {
+	    clients.remove(client);
+	}
+	public synchronized void updateAuctionItems(List<AuctionItem> auctionItems) {
+	    Message message = new Message(Message.UPDATE_AUCTION_ITEMS, "", auctionItems);
+	    broadcast(message);
+	}
+
+
 
 
 }

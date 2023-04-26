@@ -40,7 +40,7 @@ class Client {
 
   private void setUpNetworking() throws Exception {
     @SuppressWarnings("resource")
-    Socket socket = new Socket(host, 4274);
+    Socket socket = new Socket(host, 4275);
     System.out.println("Connecting to... " + socket);
     fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
     toServer = new PrintWriter(socket.getOutputStream());
@@ -68,14 +68,10 @@ class Client {
         	if (input.equals("items")) {
         	    Message request = new Message();
         	    request.type = "items";
-        	    GsonBuilder builder = new GsonBuilder();
-        	    Gson gson = builder.create();
-        	    sendToServer(gson.toJson(request));
+        	    sendToServer(request);
         	} else {
         	    Message request = new Message(input);
-        	    GsonBuilder builder = new GsonBuilder();
-        	    Gson gson = builder.create();
-        	    sendToServer(gson.toJson(request));
+        	    sendToServer(request);
         	}
 
         }
@@ -119,9 +115,9 @@ class Client {
         }
 	}
 
-  protected void sendToServer(String string) {
-    System.out.println("Sending to server: " + string);
-    toServer.println(string);
+  protected void sendToServer(Message message) {
+    System.out.println("Sending to server: " + message);
+    toServer.println(message);
     toServer.flush();
   }
   public void sendBid(String auctionItem, double bidAmount) {
@@ -132,10 +128,12 @@ class Client {
 	        e.printStackTrace();
 	    }
   }
-  public boolean updateBid(String itemId, String newBid) {
+  public boolean updateBid(String itemId, Double newBid) {
 	    // Construct the message to update the bid for the given auction item
-	    String message = "bid " + itemId + " " + newBid;
-
+	    Message message = new Message();
+	    message.type = "bid";
+	    message.itemId = itemId;
+	    message.bidAmount = newBid;
 	    // Send the message to the server
 	    sendToServer(message);
 		return true;

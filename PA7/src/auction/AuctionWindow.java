@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
@@ -20,6 +21,10 @@ import javafx.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
 
 public class AuctionWindow extends Application {
 
@@ -27,9 +32,12 @@ public class AuctionWindow extends Application {
     private Client client;
 
     private TextField bidAmountField;
-    private TextField currentAuctionItemField;
-    private Button bidButton;
     private ListView<AuctionItem> auctionItemsList;
+    private Timer auctionTimer;
+    private int auctionTimeLeft;
+    private JLabel timerLabel;
+    private Button bidButton;
+    private int highestBid;
 
 
     @Override
@@ -51,7 +59,7 @@ public class AuctionWindow extends Application {
         mainLayout.setSpacing(10);
         
         //Item ID
-        TableColumn<AuctionItem, String> idColumn = new TableColumn<>("Item ID");
+        TableColumn<AuctionItem, Integer> idColumn = new TableColumn<>("Item ID");
         idColumn.setCellValueFactory(new PropertyValueFactory<>("auctionItemId"));
         //Name
         TableColumn<AuctionItem, String> nameColumn = new TableColumn<>("Name");
@@ -73,7 +81,7 @@ public class AuctionWindow extends Application {
                     if (empty) {
                         setText(null);
                     } else {
-                        setText(String.format("$%.2f", currentBid));
+                    	setText(String.format("$%.2f", Double.parseDouble(currentBid)));
                     }
                 }
             };
@@ -81,7 +89,7 @@ public class AuctionWindow extends Application {
             // Set a listener on the item property of the cell to update the current bid when it changes
             cell.itemProperty().addListener((obs, oldBid, newBid) -> {
                 if (newBid != null) {
-                    cell.setText(String.format("$%.2f", newBid));
+                	cell.setText(String.format("$%.2f", Double.parseDouble(newBid)));
                 } else {
                     cell.setText(null);
                 }
@@ -91,18 +99,9 @@ public class AuctionWindow extends Application {
         });
         tableView.getColumns().addAll(idColumn, nameColumn, descriptionColumn, priceColumn, currentBidColumn);
         tableView.getItems().addAll(auctionItems);
-        mainLayout.getChildren().add(tableView);        
-        
-        // Add a label for the current auction item
-        HBox currentAuctionItemBox = new HBox();
-        currentAuctionItemBox.setSpacing(5);
-        Label currentAuctionItemLabel = new Label("Choose Auction Item: ");
-        currentAuctionItemBox.getChildren().add(currentAuctionItemLabel);
-        currentAuctionItemField = new TextField();
-        currentAuctionItemField.setPrefWidth(50);
-        currentAuctionItemBox.getChildren().add(currentAuctionItemField);
-        mainLayout.getChildren().add(currentAuctionItemBox);
-
+        mainLayout.getChildren().add(tableView);
+      
+     
         
         // Add a label and field for the bid amount
         HBox bidAmountBox = new HBox();
@@ -121,37 +120,50 @@ public class AuctionWindow extends Application {
         bidButton.setOnAction(event -> {
             AuctionItem selectedItem = tableView.getSelectionModel().getSelectedItem();
             if (selectedItem == null) {
-                // No item is selected, show an error message and return
-                // ...
+            	Alert alert = new Alert(AlertType.ERROR);
+        	    alert.setTitle("No Item Selected");
+        	    alert.setHeaderText(null);
+        	    alert.setContentText("Please select an item from the above table");
+        	    alert.showAndWait();
                 return;
             }
             String bidAmountString = bidAmountField.getText();
-            double bidAmount;
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, bidAmountString);
+            alert.show();
             try {
-                bidAmount = Double.parseDouble(bidAmountString);
-                client.sendBid(bidAmountString, selectedItem.auctionItemId);
+                double bidAmount = Double.parseDouble(bidAmountString);
+                if(bidAmountString.isEmpty()) {
+                	Alert alert3 = new Alert(Alert.AlertType.ERROR, "Enter a Bid Amount that is higher than start bid", ButtonType.OK);
+                	alert3.showAndWait();
+                }
+                else if (bidAmount <= Double.parseDouble(selectedItem.getHighestBid()) || bidAmount < (Double.parseDouble(selectedItem.getStartPrice()) * 1.01)) {
+                    // Invalid bid amount, show an error message and return
+                    Alert alert2 = new Alert(Alert.AlertType.ERROR, "Bid amount must be higher than current highest bid and at least 1% higher than start price.", ButtonType.OK);
+                    alert2.showAndWait();
+                }
+                
+                //client.sendBid(bidAmountString, selectedItem.auctionItemId);
             } catch (NumberFormatException e) {
                 // Invalid bid amount, show an error message and return
-                Alert alert = new Alert(Alert.AlertType.ERROR, "Invalid bid amount. Please enter a valid number.", ButtonType.OK);
-                alert.showAndWait();
-                return;
-            }
-
-            if (bidAmount <= Double.parseDouble(selectedItem.getHighestBid()) || bidAmount < Double.parseDouble(selectedItem.getStartPrice()) * .01) {
-                // Invalid bid amount, show an error message and return
-                Alert alert = new Alert(Alert.AlertType.ERROR, "Bid amount must be higher than current highest bid and at least 1% higher than start price.", ButtonType.OK);
-                alert.showAndWait();
-                return;
+            	 Alert alert1 = new Alert(AlertType.ERROR);
+            	    alert1.setTitle("Invalid Bid Amount");
+            	    alert1.setHeaderText(null);
+            	    alert1.setContentText("Please enter a valid bid amount as a number.");
+            	    alert1.showAndWait();
             }
 
             // Update the highest bid of the selected item
-            selectedItem.setHighestBid(String.valueOf(bidAmount));
+            selectedItem.setHighestBid(bidAmountString);
 
             // Update the TableView to display the new highest bid
             tableView.refresh();
 
             // Update the server with the new bid
-            updateServer(String.valueOf(selectedItem.getAuctionItemId()), String.valueOf(bidAmount));
+            Message message = new Message(Message.UPDATE_AUCTION_ITEMS, "");
+            System.out.println(message);
+            client.sendToServer(message);
+            tableView.refresh();
+            
         });
 
         // Add a list of available auction items
@@ -173,18 +185,7 @@ public class AuctionWindow extends Application {
         // Once the user has logged in, enable the bid button
  
     }
-    private void updateServer(String itemId, String bidAmount) {
-        // Send a message to the server to update the bid amount for the specified item ID
-        boolean success = client.updateBid(itemId, bidAmount);
-        client.updateBid(itemId, bidAmount);
-        
-        if (!success) {
-            // An error occurred while communicating with the server, show an error message
-            Alert alert = new Alert(Alert.AlertType.ERROR, "Failed to update bid amount. Please try again.", ButtonType.OK);
-            alert.showAndWait();
-        }
-    }
-    
+
 
 
     public static void main(String[] args) {
