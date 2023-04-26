@@ -51,13 +51,22 @@ public class AuctionItem {
     public String getName() {
         return name;
     }
+    public void setName(String name) {
+    	this.name = name;
+    }
 
     public String getDescription() {
         return description;
     }
+    public void setDescription(String description) {
+    	this.description = description;
+    }
 
     public String getStartPrice() {
         return startPrice;
+    }
+    public void setStartPrice(String startPrice) {
+    	this.startPrice = startPrice;
     }
 
     public String getHighestBid() {

@@ -1,6 +1,8 @@
 package auction;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -38,6 +40,8 @@ public class AuctionWindow extends Application {
     private JLabel timerLabel;
     private Button bidButton;
     private int highestBid;
+    
+    TableView<AuctionItem> tableView = new TableView<>();
 
 
     @Override
@@ -48,9 +52,8 @@ public class AuctionWindow extends Application {
 
         // Create the main layout for the auction window
     	// Get the list of auction items from the server
+       
         List<AuctionItem> auctionItems = server.readItemsFromFile();
-        TableView<AuctionItem> tableView = new TableView<>();
-
         // Start listening for updates from the server
         primaryStage.setTitle("Auction Window");
 
@@ -159,7 +162,7 @@ public class AuctionWindow extends Application {
             tableView.refresh();
 
             // Update the server with the new bid
-            Message message = new Message(Message.UPDATE_AUCTION_ITEMS, "");
+            Message message = new Message(Message.updateAuctionItems, "");
             System.out.println(message);
             client.sendToServer(message);
             tableView.refresh();
@@ -184,6 +187,21 @@ public class AuctionWindow extends Application {
 
         // Once the user has logged in, enable the bid button
  
+    }
+    public void updateAuctionItem(AuctionItem item) {
+        Platform.runLater(() -> {
+        	ObservableList<AuctionItem> items = auctionItemsList.getItems();
+            for (int i = 0; i < items.size(); i++) {
+                if (items.get(i).getAuctionItemId().equals(item.getAuctionItemId())) {
+                	items.set(i, item);
+                    tableView.refresh();
+                    break;
+                }
+            }
+        });
+    }
+    public TableView<AuctionItem> getTableView() {
+        return tableView;
     }
 
 

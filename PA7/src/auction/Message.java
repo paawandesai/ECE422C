@@ -9,7 +9,7 @@ class Message {
 	public String itemId;
 	public double bidAmount;
 	public int customerId;
-	public static final String UPDATE_AUCTION_ITEMS = "UPDATE_AUCTION_ITEMS";
+	public static final String updateAuctionItems = "UPDATE_AUCTION_ITEMS";
 	private List<AuctionItem> auctionItems;
 
 
@@ -48,4 +48,5 @@ class Message {
 	public String getType() {
 		return type;
 	}
+	
 }

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 class Server extends Observable {
 	private List<AuctionItem> items = new ArrayList<>();
@@ -31,7 +32,7 @@ class Server extends Observable {
 
 	private void setUpNetworking() throws Exception {
 		@SuppressWarnings("resource")
-		ServerSocket serverSock = new ServerSocket(4275);
+		ServerSocket serverSock = new ServerSocket(4276);
 		while (true) {
 			Socket clientSocket = serverSock.accept();
 			System.out.println("Connecting to... " + clientSocket);
@@ -44,7 +45,14 @@ class Server extends Observable {
 
 	protected void processRequest(String input, ClientHandler clientHandler) {
 		Gson gson = new Gson();
+		Message incomingMessage = gson.fromJson(input, Message.class);
+	    String messageType = incomingMessage.getType();
 		String[] parts = input.split(" ");
+		if (messageType.equals("updateAuctionItems")) {
+			String itemsJson = gson.toJson(incomingMessage.getAuctionItems());
+	        List<AuctionItem> newItems = gson.fromJson(itemsJson, new TypeToken<List<AuctionItem>>(){}.getType());
+	        updateAuctionItems(newItems);
+	    }
 		if (parts.length == 3 && parts[0].equals("bid")) {
 			int itemId = Integer.parseInt(parts[1]);
 			String bidAmount = parts[2];
@@ -140,8 +148,10 @@ class Server extends Observable {
 	    clients.remove(client);
 	}
 	public synchronized void updateAuctionItems(List<AuctionItem> auctionItems) {
-	    Message message = new Message(Message.UPDATE_AUCTION_ITEMS, "", auctionItems);
-	    broadcast(message);
+	    this.items = auctionItems;
+	    // Notify all clients of updated auction items
+	    setChanged();
+	    notifyObservers(new Message("updateAuctionItems", "", auctionItems));
 	}
 
 
