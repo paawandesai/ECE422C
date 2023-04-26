@@ -42,9 +42,6 @@ public class AuctionWindow extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        // Initialize the server and client
-        client = new Client();
-
         // Create the main layout for the auction window
     	// Get the list of auction items from the server
        
@@ -159,7 +156,7 @@ public class AuctionWindow extends Application {
             // Update the server with the new bid
             Message message = new Message(Message.updateAuctionItems, "");
             System.out.println(message);
-            client.sendToServer(message);
+            // client.sendToServer(message);
             tableView.refresh();
             
         });

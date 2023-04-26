@@ -55,11 +55,11 @@ class ClientHandler implements Runnable, Observer, AuctionItemObserver {
 		}
 	}
 
-	@Override
-	public void onUpdate(AuctionItem item) {
-		// TODO Auto-generated method stub
+	// @Override
+	// public void onUpdate(AuctionItem item) {
+	// 	// TODO Auto-generated method stub
 
-	}
+	// }
 
 	@Override
 	public void update(Observable o, Object arg) {

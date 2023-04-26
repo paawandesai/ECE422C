@@ -57,19 +57,19 @@ class Server extends Observable {
 			int itemId = Integer.parseInt(parts[1]);
 			String bidAmount = parts[2];
 			boolean validBid = isValidBid(itemId, bidAmount);
-			if (validBid) {
-				// Notify all clients of new highest bid
-				setChanged();
-				notifyObservers(gson.toJson(new Message("newBid", "", itemId)));
-				// Update the corresponding AuctionItem with the new bid amount
-				for (AuctionItem item : items) {
-					if (item.getAuctionItemId() == itemId) {
-						//item.setHighestBidder(clientHandler.getClientId());
-						item.setHighestBid(String.valueOf(bidAmount));
-						break;
-					}
-				}
-			}
+			// if (validBid) {
+			// 	// Notify all clients of new highest bid
+			// 	setChanged();
+			// 	notifyObservers(gson.toJson(new Message("newBid", "", itemId)));
+			// 	// Update the corresponding AuctionItem with the new bid amount
+			// 	for (AuctionItem item : items) {
+			// 		if (item.getAuctionItemId() == itemId) {
+			// 			//item.setHighestBidder(clientHandler.getClientId());
+			// 			item.setHighestBid(String.valueOf(bidAmount));
+			// 			break;
+			// 		}
+			// 	}
+			// }
 			// Send response to client
 			Message outputMessage = new Message("output", Boolean.toString(validBid), 0);
 			clientHandler.sendToClient(outputMessage);

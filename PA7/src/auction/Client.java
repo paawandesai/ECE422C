@@ -23,24 +23,7 @@ class Client {
 	private AuctionWindow auctionWindow;
 	List<AuctionItem> auctionItems = new List<AuctionItem>();
 
-	public void main(String[] args) {
-		try {
-			new Client().setUpNetworking();
-			javafx.application.Application.launch(LoginWindow.class);
-			
-			Message getItems = new Message(MessageType.GET_AUCTION_ITEMS);
-			sendToServer(getItems);
 
-			
-
-
-			run();
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.err.println("Error connecting to server. Please check if the server is running.");
-		}
-	}
 
 	private void setUpNetworking() throws Exception {
 		@SuppressWarnings("resource")
@@ -88,4 +71,20 @@ class Client {
 		toServer.flush();
 	}
 
+	public static void main(String[] args) {
+		try {
+			Client client = new Client().setUpNetworking();
+			javafx.application.Application.launch(LoginWindow.class);
+			
+			Message getItems = new Message(MessageType.GET_AUCTION_ITEMS);
+			client.sendToServer(getItems);
+
+
+			run();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.err.println("Error connecting to server. Please check if the server is running.");
+		}
+	}
 }
