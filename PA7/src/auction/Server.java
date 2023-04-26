@@ -135,11 +135,7 @@ class Server extends Observable {
 	public List<AuctionItem> getAuctionItems() {
 		return items;
 	}
-	public void broadcast(Message message) {
-	    for (ClientHandler client : clients) {
-	        client.sendToClient(message);
-	    }
-	}
+
 	public synchronized void addClient(ClientHandler client) {
 	    clients.add(client);
 	}
@@ -147,14 +143,5 @@ class Server extends Observable {
 	public synchronized void removeClient(ClientHandler client) {
 	    clients.remove(client);
 	}
-	public synchronized void updateAuctionItems(List<AuctionItem> auctionItems) {
-	    this.items = auctionItems;
-	    // Notify all clients of updated auction items
-	    setChanged();
-	    notifyObservers(new Message("updateAuctionItems", "", auctionItems));
-	}
-
-
-
 
 }

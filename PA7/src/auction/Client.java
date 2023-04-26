@@ -20,19 +20,22 @@ class Client {
 	private BufferedReader fromServer;
 	private PrintWriter toServer;
 	private Scanner consoleInput = new Scanner(System.in);
-	ObjectOutputStream oos;
 	private AuctionWindow auctionWindow;
+	List<AuctionItem> auctionItems = new List<AuctionItem>();
 
-	public static void main(String[] args) {
+	public void main(String[] args) {
 		try {
 			new Client().setUpNetworking();
 			javafx.application.Application.launch(LoginWindow.class);
+			
+			Message getItems = new Message(MessageType.GET_AUCTION_ITEMS);
+			sendToServer(getItems);
 
-			/*Platform.runLater(() -> {
-    	    // code that interacts with JavaFX components goes here
-    	  LoginWindow loginWindow = new LoginWindow();
-          loginWindow.start(new Stage()); 
-    	});  */
+			
+
+
+			run();
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.err.println("Error connecting to server. Please check if the server is running.");
@@ -45,42 +48,13 @@ class Client {
 		System.out.println("Connecting to... " + socket);
 		fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		toServer = new PrintWriter(socket.getOutputStream());
-		ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-		Thread readerThread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				String input;
-				try {
-					while ((input = fromServer.readLine()) != null) {
-						System.out.println("From Server: " + input);
-						processRequest(input);
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+	}
 
-		Thread writerThread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (true) {
-					String input = consoleInput.nextLine();
-					if (input.equals("items")) {
-						Message request = new Message();
-						request.type = "items";
-						sendToServer(request);
-					} else {
-						Message request = new Message(input);
-						sendToServer(request);
-					}
+	public static void run() {
+		while (true) {
 
-				}
-			}
-		});
 
-		readerThread.start();
-		writerThread.start();
+		}
 	}
 
 	protected void processRequest(String input) {
@@ -113,25 +87,5 @@ class Client {
 		toServer.println(message);
 		toServer.flush();
 	}
-	public void sendBid(String auctionItem, double bidAmount) {
-		try {
-			Message bidMessage = new Message(auctionItem, bidAmount);
-			oos.writeObject(bidMessage);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	public boolean updateBid(String itemId, Double newBid) {
-		// Construct the message to update the bid for the given auction item
-		Message message = new Message();
-		message.type = "bid";
-		message.itemId = itemId;
-		message.bidAmount = newBid;
-		// Send the message to the server
-		sendToServer(message);
-		return true;
-
-	}
-
 
 }

@@ -2,7 +2,11 @@ package auction;
 
 import java.util.List;
 
+enum MessageType {
+	GET_AUCTION_ITEMS,
+}
 class Message {
+	MessageType messageType;
 	String type;
 	String input;
 	int number;
@@ -19,8 +23,9 @@ class Message {
 		this.number = 0;
 		System.out.println("client-side message created");
 	}
-	protected Message(String input) {
-		this.input = "";
+	
+	public Message(MessageType type) {
+		this.messageType = type;
 	}
 	public Message(String type, String content) {
 		this.type = type;

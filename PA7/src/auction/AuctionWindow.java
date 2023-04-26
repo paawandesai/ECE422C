@@ -29,10 +29,6 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 
 public class AuctionWindow extends Application {
-
-    private Server server;
-    private Client client;
-
     private TextField bidAmountField;
     private ListView<AuctionItem> auctionItemsList;
     private Timer auctionTimer;
@@ -47,7 +43,6 @@ public class AuctionWindow extends Application {
     @Override
     public void start(Stage primaryStage) {
         // Initialize the server and client
-        server = new Server();
         client = new Client();
 
         // Create the main layout for the auction window

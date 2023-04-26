@@ -54,16 +54,6 @@ class ClientHandler implements Runnable, Observer, AuctionItemObserver {
 			e.printStackTrace();
 		}
 	}
-	public void handleMessage(Message message) {
-		switch (message.getType()) {
-		case Message.updateAuctionItems:
-			List<AuctionItem> updatedAuctionItems = message.getAuctionItems();
-			Platform.runLater(() -> server.updateAuctionItems(updatedAuctionItems));
-			break;
-		}
-	}
-
-
 
 	@Override
 	public void onUpdate(AuctionItem item) {
