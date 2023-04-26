@@ -36,16 +36,27 @@ public class AuctionWindow extends Application {
     private JLabel timerLabel;
     private Button bidButton;
     private int highestBid;
+
+    List<AuctionItem> auctionItems;
+
     
     TableView<AuctionItem> tableView = new TableView<>();
 
 
     @Override
     public void start(Stage primaryStage) {
+		Socket socket = new Socket(host, 4276);
+        BufferedReader fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        PrintWriter toServer = new PrintWriter(socket.getOutputStream());
+        			
+        Message getItems = new Message(MessageType.GET_AUCTION_ITEMS);
+        System.out.println("[aw] sending GETAUCTIONITEMS ");
+        toServer.println(message);
+        toServer.flush();
+
+
         // Create the main layout for the auction window
-    	// Get the list of auction items from the server
        
-        List<AuctionItem> auctionItems = server.readItemsFromFile();
         // Start listening for updates from the server
         primaryStage.setTitle("Auction Window");
 
@@ -137,7 +148,6 @@ public class AuctionWindow extends Application {
                     alert2.showAndWait();
                 }
                 
-                //client.sendBid(bidAmountString, selectedItem.auctionItemId);
             } catch (NumberFormatException e) {
                 // Invalid bid amount, show an error message and return
             	 Alert alert1 = new Alert(AlertType.ERROR);
@@ -169,16 +179,6 @@ public class AuctionWindow extends Application {
         Scene scene = new Scene(mainLayout, 600, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
-
-        // Connect to the server
-        //client.connectToServer("localhost", 8888);
-
-        // Show the login window and wait for the user to log in
-        //LoginWindow loginWindow = new LoginWindow();
-        //loginWindow.show();
-
-        // Once the user has logged in, enable the bid button
- 
     }
     public void updateAuctionItem(AuctionItem item) {
         Platform.runLater(() -> {

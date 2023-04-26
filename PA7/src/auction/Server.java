@@ -12,13 +12,21 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 class Server extends Observable {
-	private List<AuctionItem> items = new ArrayList<>();
+	private List<AuctionItem> auctionItems;
 	private ClientHandler handler;
-	private List<ClientHandler> clients = new ArrayList<>();
+	private List<ClientHandler> clientHandlers;
+
+	public Server() {
+		auctionItems = readItemsFromFile();
+
+	}
 
 
 	public static void main(String[] args) {
-		new Server().runServer();
+		Server server = new Server();
+		server.auctionItems = server.readItemsFromFile();
+		print(server.auctionItems);
+		server.runServer();
 	}
 
 	private void runServer() {
@@ -37,6 +45,8 @@ class Server extends Observable {
 			Socket clientSocket = serverSock.accept();
 			System.out.println("Connecting to... " + clientSocket);
 			handler = new ClientHandler(this, clientSocket);
+			addClient(handler);
+
 			this.addObserver(handler);
 			Thread t = new Thread(handler);
 			t.start();
@@ -44,6 +54,7 @@ class Server extends Observable {
 	}
 
 	protected void processRequest(String input, ClientHandler clientHandler) {
+		System.out.println("[server] got input: " + input);
 		Gson gson = new Gson();
 		Message incomingMessage = gson.fromJson(input, Message.class);
 	    String messageType = incomingMessage.getType();
@@ -137,11 +148,11 @@ class Server extends Observable {
 	}
 
 	public synchronized void addClient(ClientHandler client) {
-	    clients.add(client);
+	    clientHandlers.add(client);
 	}
 
 	public synchronized void removeClient(ClientHandler client) {
-	    clients.remove(client);
+	    clientHandlers.remove(client);
 	}
 
 }

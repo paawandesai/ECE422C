@@ -47,7 +47,7 @@ class ClientHandler implements Runnable, Observer, AuctionItemObserver {
 		String input;
 		try {
 			while ((input = fromClient.readLine()) != null) {
-				System.out.println("From client: " + input);
+				System.out.println("[CH]: " + input);
 				server.processRequest(input, this);
 			}
 		} catch (IOException e) {

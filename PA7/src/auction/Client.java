@@ -1,5 +1,6 @@
 package auction;
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import java.io.BufferedReader;
@@ -21,7 +22,7 @@ class Client {
 	private PrintWriter toServer;
 	private Scanner consoleInput = new Scanner(System.in);
 	private AuctionWindow auctionWindow;
-	List<AuctionItem> auctionItems = new List<AuctionItem>();
+	List<AuctionItem> auctionItems = new ArrayList<AuctionItem>();
 
 
 
@@ -31,13 +32,6 @@ class Client {
 		System.out.println("Connecting to... " + socket);
 		fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		toServer = new PrintWriter(socket.getOutputStream());
-	}
-
-	public static void run() {
-		while (true) {
-
-
-		}
 	}
 
 	protected void processRequest(String input) {
@@ -73,14 +67,9 @@ class Client {
 
 	public static void main(String[] args) {
 		try {
-			Client client = new Client().setUpNetworking();
+			Client client = new Client();
+			client.setUpNetworking();
 			javafx.application.Application.launch(LoginWindow.class);
-			
-			Message getItems = new Message(MessageType.GET_AUCTION_ITEMS);
-			client.sendToServer(getItems);
-
-
-			run();
 
 		} catch (Exception e) {
 			e.printStackTrace();
