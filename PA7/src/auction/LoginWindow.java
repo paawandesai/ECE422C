@@ -1,4 +1,15 @@
+/*
+* EE422C Final Project submission by
+* Replace <...> with your actual data.
+* <Paawan Desai>
+* <pkd397>
+* <17140>
+* Spring 2023
+*/
 package auction;
+
+import java.io.IOException;
+import java.net.UnknownHostException;
 
 import javax.swing.JFrame;
 
@@ -17,6 +28,9 @@ public class LoginWindow extends Application {
 
     private TextField usernameField;
     private TextField passwordField;
+    private Server server;
+    private Client client;
+    
 
     @Override
     public void start(Stage primaryStage) {
@@ -60,7 +74,15 @@ public class LoginWindow extends Application {
             if (username.equals("admin") && password.equals("password") || username.equals("guest")) {
                 // If the credentials are valid, open the AuctionWindow
                 AuctionWindow auctionWindow = new AuctionWindow();
-                auctionWindow.start(new Stage());
+                try {
+					auctionWindow.start(new Stage());
+				} catch (UnknownHostException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
                 // Close the LoginWindow
                 primaryStage.close();
             } else {

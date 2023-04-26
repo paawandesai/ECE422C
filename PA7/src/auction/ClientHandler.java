@@ -16,7 +16,7 @@ import javafx.application.Platform;
 import java.util.List;
 import java.util.Observable;
 
-class ClientHandler implements Runnable, Observer, AuctionItemObserver {
+class ClientHandler implements Runnable, Observer {
 
 	private Server server;
 	private Socket clientSocket;
@@ -28,8 +28,8 @@ class ClientHandler implements Runnable, Observer, AuctionItemObserver {
 	protected ClientHandler(Server server, Socket clientSocket) throws IOException {
 		this.server = server;
 		this.clientSocket = clientSocket;
-		out = new ObjectOutputStream(clientSocket.getOutputStream());
-		in = new ObjectInputStream(clientSocket.getInputStream());
+		BufferedReader fromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        PrintWriter toServer = new PrintWriter(clientSocket.getOutputStream());
 
 		fromClient = new BufferedReader(new InputStreamReader(this.clientSocket.getInputStream()));
 		toClient = new PrintWriter(this.clientSocket.getOutputStream());

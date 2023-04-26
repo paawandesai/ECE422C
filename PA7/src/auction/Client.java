@@ -1,6 +1,7 @@
 package auction;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import java.io.BufferedReader;
@@ -27,11 +28,13 @@ class Client {
 
 
 	private void setUpNetworking() throws Exception {
-		@SuppressWarnings("resource")
-		Socket socket = new Socket(host, 4276);
+		/*
+		 * @SuppressWarnings("resource")
+		Socket socket = new Socket(host, 4278);
 		System.out.println("Connecting to... " + socket);
 		fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		toServer = new PrintWriter(socket.getOutputStream());
+		*/
 	}
 
 	protected void processRequest(String input) {

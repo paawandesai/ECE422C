@@ -30,18 +30,6 @@ public class AuctionItem {
         this.highestBid = startPrice;
         this.highestBidderId = null;
         this.sold = false;
-
-        this.timer = new Timer(delay, new ActionListener() {
-            private int counter = 0;
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                counter++;
-                if (counter == 20) {
-                    closed = true;
-                    timer.stop();
-                }
-            }
-        });
     }
 
     public Integer getAuctionItemId() {
@@ -116,4 +104,19 @@ public class AuctionItem {
     public synchronized boolean closed() {
         return sold || !timer.isRunning();
     }
+
+    public synchronized int getTimeLeft() {
+        if (closed()) {
+            return 0;
+        }
+        return (int) (delay - timer.getDelay()) / 1000;
+    }
+
+    public synchronized void setTimeLeft(int seconds) {
+        int timeLeft = (seconds * 1000) - (delay - timer.getDelay());
+        if (timeLeft > 0) {
+            timer.setDelay(timeLeft);
+        }
+    }
+
 }

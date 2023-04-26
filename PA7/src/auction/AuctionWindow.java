@@ -1,3 +1,11 @@
+/*
+* EE422C Final Project submission by
+* Replace <...> with your actual data.
+* <Paawan Desai>
+* <pkd397>
+* <17140>
+* Spring 2023
+*/
 package auction;
 
 import javafx.application.Application;
@@ -21,6 +29,12 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -44,16 +58,23 @@ public class AuctionWindow extends Application {
 
 
     @Override
-    public void start(Stage primaryStage) {
-		Socket socket = new Socket(host, 4276);
+    public void start(Stage primaryStage) throws UnknownHostException, IOException {
+		Socket socket = new Socket("127.0.0.1", 4278);
         BufferedReader fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         PrintWriter toServer = new PrintWriter(socket.getOutputStream());
         			
         Message getItems = new Message(MessageType.GET_AUCTION_ITEMS);
         System.out.println("[aw] sending GETAUCTIONITEMS ");
-        toServer.println(message);
+        toServer.println(getItems);
         toServer.flush();
-
+        System.out.println(fromServer.readLine());
+        /*
+        fromServer.read();
+        String userInput;
+        while ((userInput = fromServer.readLine()) != null) {
+            System.out.println(userInput);
+            //System.out.println("echo: " + toServer.readLine());
+        }*/
 
         // Create the main layout for the auction window
        

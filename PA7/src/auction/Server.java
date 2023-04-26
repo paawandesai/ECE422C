@@ -25,7 +25,7 @@ class Server extends Observable {
 	public static void main(String[] args) {
 		Server server = new Server();
 		server.auctionItems = server.readItemsFromFile();
-		print(server.auctionItems);
+		System.out.println(server.auctionItems);
 		server.runServer();
 	}
 
@@ -40,12 +40,12 @@ class Server extends Observable {
 
 	private void setUpNetworking() throws Exception {
 		@SuppressWarnings("resource")
-		ServerSocket serverSock = new ServerSocket(4276);
+		ServerSocket serverSock = new ServerSocket(4278);
 		while (true) {
 			Socket clientSocket = serverSock.accept();
 			System.out.println("Connecting to... " + clientSocket);
 			handler = new ClientHandler(this, clientSocket);
-			addClient(handler);
+			//addClient(handler);
 
 			this.addObserver(handler);
 			Thread t = new Thread(handler);
@@ -62,7 +62,7 @@ class Server extends Observable {
 		if (messageType.equals("updateAuctionItems")) {
 			String itemsJson = gson.toJson(incomingMessage.getAuctionItems());
 	        List<AuctionItem> newItems = gson.fromJson(itemsJson, new TypeToken<List<AuctionItem>>(){}.getType());
-	        updateAuctionItems(newItems);
+	        //updateAuctionItems(newItems);
 	    }
 		if (parts.length == 3 && parts[0].equals("bid")) {
 			int itemId = Integer.parseInt(parts[1]);
@@ -128,7 +128,7 @@ class Server extends Observable {
 		return itemList;
 	}
 	private synchronized boolean isValidBid(int itemId, String bidAmount) {
-		for (AuctionItem item : items) {
+		for (AuctionItem item : auctionItems) {
 			if (item.getAuctionItemId() == itemId) {
 				// Check if auction is still open
 				if (item.closed()) {
@@ -144,7 +144,7 @@ class Server extends Observable {
 		void onUpdate(AuctionItem item);
 	}
 	public List<AuctionItem> getAuctionItems() {
-		return items;
+		return auctionItems;
 	}
 
 	public synchronized void addClient(ClientHandler client) {

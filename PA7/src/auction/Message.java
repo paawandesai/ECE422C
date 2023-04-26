@@ -36,6 +36,7 @@ class Message {
 		this.input = content;
 		this.auctionItems = auctionItems;
 	}
+	
 
 	protected Message(String type, String input, int number) {
 		this.type = type;
