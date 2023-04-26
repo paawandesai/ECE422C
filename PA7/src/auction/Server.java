@@ -1,3 +1,11 @@
+/*
+* EE422C Final Project submission by
+* Replace <...> with your actual data.
+* <Paawan Desai>
+* <pkd397>
+* <17140>
+* Spring 2023
+*/
 package auction;
 
 import java.io.BufferedReader;
@@ -57,8 +65,9 @@ class Server extends Observable {
 		System.out.println("[server] got input: " + input);
 		Gson gson = new Gson();
 		Message incomingMessage = gson.fromJson(input, Message.class);
-
+		System.out.println("line 68");
 		if (incomingMessage.messageType == MessageType.GET_AUCTION_ITEMS) {
+			System.out.println("line 70");
 			Message ret = new Message(MessageType.SEND_AUCTION_ITEMS, auctionItems);
 			clientHandler.sendToClient(ret);
 		}

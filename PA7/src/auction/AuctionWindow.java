@@ -67,15 +67,7 @@ public class AuctionWindow extends Application {
         System.out.println("[aw] sending GETAUCTIONITEMS ");
         toServer.println(getItems);
         toServer.flush();
-		String input;
-		try {
-			while ((input = fromServer.readLine()) != null) {
-				System.out.println("[AW]: " + input);
-				server.processRequest(input, this);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		System.out.println(fromServer.readLine());
         /*
         fromServer.read();
         String userInput;
@@ -193,8 +185,8 @@ public class AuctionWindow extends Application {
             tableView.refresh();
 
             // Update the server with the new bid
-            Message message = new Message(Message.updateAuctionItems, "");
-            System.out.println(message);
+            //Message message = new Message(Message.updateAuctionItems, "");
+            //System.out.println(message);
             // client.sendToServer(message);
             tableView.refresh();
             

@@ -1,5 +1,6 @@
 package auction;
 
+import java.util.ArrayList;
 import java.util.List;
 
 enum MessageType {
@@ -28,7 +29,7 @@ class Message {
 	public Message(MessageType type) {
 		this.messageType = type;
 	}
-	public Message(MessageType type, ArrayList<AuctionItem> auctionItems) {
+	public Message(MessageType type, List<AuctionItem> auctionItems) {
 		this.messageType = type;
 		this.auctionItems = auctionItems;
 	}

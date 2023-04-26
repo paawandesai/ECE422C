@@ -1,3 +1,11 @@
+/*
+* EE422C Final Project submission by
+* Replace <...> with your actual data.
+* <Paawan Desai>
+* <pkd397>
+* <17140>
+* Spring 2023
+*/
 package auction;
 
 import java.awt.event.ActionEvent;
