@@ -57,54 +57,59 @@ class Server extends Observable {
 		System.out.println("[server] got input: " + input);
 		Gson gson = new Gson();
 		Message incomingMessage = gson.fromJson(input, Message.class);
-	    String messageType = incomingMessage.getType();
-		String[] parts = input.split(" ");
-		if (messageType.equals("updateAuctionItems")) {
-			String itemsJson = gson.toJson(incomingMessage.getAuctionItems());
-	        List<AuctionItem> newItems = gson.fromJson(itemsJson, new TypeToken<List<AuctionItem>>(){}.getType());
-	        //updateAuctionItems(newItems);
-	    }
-		if (parts.length == 3 && parts[0].equals("bid")) {
-			int itemId = Integer.parseInt(parts[1]);
-			String bidAmount = parts[2];
-			boolean validBid = isValidBid(itemId, bidAmount);
-			// if (validBid) {
-			// 	// Notify all clients of new highest bid
-			// 	setChanged();
-			// 	notifyObservers(gson.toJson(new Message("newBid", "", itemId)));
-			// 	// Update the corresponding AuctionItem with the new bid amount
-			// 	for (AuctionItem item : items) {
-			// 		if (item.getAuctionItemId() == itemId) {
-			// 			//item.setHighestBidder(clientHandler.getClientId());
-			// 			item.setHighestBid(String.valueOf(bidAmount));
-			// 			break;
-			// 		}
-			// 	}
-			// }
-			// Send response to client
-			Message outputMessage = new Message("output", Boolean.toString(validBid), 0);
-			clientHandler.sendToClient(outputMessage);
+
+		if (incomingMessage.messageType == MessageType.GET_AUCTION_ITEMS) {
+			Message ret = new Message(MessageType.SEND_AUCTION_ITEMS, auctionItems);
+			clientHandler.sendToClient(ret);
 		}
-		else if (parts.length == 1 && parts[0].equals("items")) {
-			String fileName = "items.txt";
-			String fileContent = "";
-			try {
-				BufferedReader reader = new BufferedReader(new FileReader(fileName));
-				String line;
-				while ((line = reader.readLine()) != null) {
-					fileContent += line;
-				}
-				reader.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			Message outputMessage = new Message("output", fileContent, 0);
-			clientHandler.sendToClient(outputMessage);
-		} 
-		else {
-			String output = "Error: ";
-			clientHandler.sendToClient(new Message("output", output, 0));
-		}
+	    // String messageType = incomingMessage.getType();
+		// String[] parts = input.split(" ");
+		// if (messageType.equals("updateAuctionItems")) {
+		// 	String itemsJson = gson.toJson(incomingMessage.getAuctionItems());
+	    //     List<AuctionItem> newItems = gson.fromJson(itemsJson, new TypeToken<List<AuctionItem>>(){}.getType());
+	    //     updateAuctionItems(newItems);
+	    // }
+		// if (parts.length == 3 && parts[0].equals("bid")) {
+		// 	int itemId = Integer.parseInt(parts[1]);
+		// 	String bidAmount = parts[2];
+		// 	boolean validBid = isValidBid(itemId, bidAmount);
+		// 	// if (validBid) {
+		// 	// 	// Notify all clients of new highest bid
+		// 	// 	setChanged();
+		// 	// 	notifyObservers(gson.toJson(new Message("newBid", "", itemId)));
+		// 	// 	// Update the corresponding AuctionItem with the new bid amount
+		// 	// 	for (AuctionItem item : items) {
+		// 	// 		if (item.getAuctionItemId() == itemId) {
+		// 	// 			//item.setHighestBidder(clientHandler.getClientId());
+		// 	// 			item.setHighestBid(String.valueOf(bidAmount));
+		// 	// 			break;
+		// 	// 		}
+		// 	// 	}
+		// 	// }
+		// 	// Send response to client
+		// 	Message outputMessage = new Message("output", Boolean.toString(validBid), 0);
+		// 	clientHandler.sendToClient(outputMessage);
+		// }
+		// else if (parts.length == 1 && parts[0].equals("items")) {
+		// 	String fileName = "items.txt";
+		// 	String fileContent = "";
+		// 	try {
+		// 		BufferedReader reader = new BufferedReader(new FileReader(fileName));
+		// 		String line;
+		// 		while ((line = reader.readLine()) != null) {
+		// 			fileContent += line;
+		// 		}
+		// 		reader.close();
+		// 	} catch (IOException e) {
+		// 		e.printStackTrace();
+		// 	}
+		// 	Message outputMessage = new Message("output", fileContent, 0);
+		// 	clientHandler.sendToClient(outputMessage);
+		// } 
+		// else {
+		// 	String output = "Error: ";
+		// 	clientHandler.sendToClient(new Message("output", output, 0));
+		// }
 	}
 
 

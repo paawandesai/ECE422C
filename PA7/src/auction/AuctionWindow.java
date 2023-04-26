@@ -67,7 +67,15 @@ public class AuctionWindow extends Application {
         System.out.println("[aw] sending GETAUCTIONITEMS ");
         toServer.println(getItems);
         toServer.flush();
-        System.out.println(fromServer.readLine());
+		String input;
+		try {
+			while ((input = fromServer.readLine()) != null) {
+				System.out.println("[AW]: " + input);
+				server.processRequest(input, this);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
         /*
         fromServer.read();
         String userInput;

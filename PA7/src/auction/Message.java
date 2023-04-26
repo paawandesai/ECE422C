@@ -4,6 +4,7 @@ import java.util.List;
 
 enum MessageType {
 	GET_AUCTION_ITEMS,
+	SEND_AUCTION_ITEMS
 }
 class Message {
 	MessageType messageType;
@@ -27,27 +28,11 @@ class Message {
 	public Message(MessageType type) {
 		this.messageType = type;
 	}
-	public Message(String type, String content) {
-		this.type = type;
-		this.input = content;
-	}
-	public Message(String type, String content, List<AuctionItem> auctionItems) {
-		this.type = type;
-		this.input = content;
+	public Message(MessageType type, ArrayList<AuctionItem> auctionItems) {
+		this.messageType = type;
 		this.auctionItems = auctionItems;
 	}
 	
-
-	protected Message(String type, String input, int number) {
-		this.type = type;
-		this.input = input;
-		this.number = number;
-		System.out.println("client-side message created");
-	}
-	public Message(String auctionItem, double bidAmount) {
-		this.itemId = String.valueOf(auctionItem);
-
-	}
 	public List<AuctionItem> getAuctionItems() {
 		return auctionItems;
 	}

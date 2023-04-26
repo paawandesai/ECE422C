@@ -28,8 +28,8 @@ class ClientHandler implements Runnable, Observer {
 	protected ClientHandler(Server server, Socket clientSocket) throws IOException {
 		this.server = server;
 		this.clientSocket = clientSocket;
-		BufferedReader fromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        PrintWriter toServer = new PrintWriter(clientSocket.getOutputStream());
+		BufferedReader fromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        PrintWriter toClient = new PrintWriter(clientSocket.getOutputStream());
 
 		fromClient = new BufferedReader(new InputStreamReader(this.clientSocket.getInputStream()));
 		toClient = new PrintWriter(this.clientSocket.getOutputStream());
