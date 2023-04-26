@@ -46,16 +46,14 @@ class Server extends Observable {
 		}
 	}
 
-	private void setUpNetworking() throws Exception {
+	private synchronized void setUpNetworking() throws Exception {
 		@SuppressWarnings("resource")
 		ServerSocket serverSock = new ServerSocket(4278);
 		while (true) {
 			Socket clientSocket = serverSock.accept();
-			System.out.println("Connecting to... " + clientSocket);
+			System.out.println("[server] new client has connected: " + clientSocket);
 			handler = new ClientHandler(this, clientSocket);
 			//addClient(handler);
-
-			this.addObserver(handler);
 			Thread t = new Thread(handler);
 			t.start();
 		}

@@ -44,15 +44,28 @@ class ClientHandler implements Runnable, Observer {
 
 	@Override
 	public void run() {
-		String input;
-		try {
-			while ((input = fromClient.readLine()) != null) {
-				System.out.println("[CH]: " + input);
-				server.processRequest(input, this);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		System.out.println("[CH] running run() method for CH");
+
+		objectOutput = new ObjectOutputStream(clientSocket.getOutputStream());
+		objectInput = new ObjectInputStream(clientSocket.getInputStream());
+
+		while(true) {
+			String command;
+			command = (String) objectInput.readObject();
+			System.out.println("ch: " +command);
 		}
+
+
+
+		// String input;
+		// try {
+		// 	while ((input = fromClient.readLine()) != null) {
+		// 		System.out.println("[CH]: " + input);
+		// 	}
+		// 	server.processRequest(input, this);
+		// } catch (IOException e) {
+		// 	e.printStackTrace();
+		// }
 	}
 
 	// @Override
