@@ -11,18 +11,22 @@ package auction;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Observable;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 class Server extends Observable {
-	private List<AuctionItem> auctionItems;
-	private ClientHandler handler;
-	private List<ClientHandler> clientHandlers;
+	public static List<AuctionItem> auctionItems;
+	private List<ClientHandler> clientHandlers = new ArrayList<ClientHandler>();
+	private ObjectOutputStream out;
+	private ObjectInputStream in;
 
 	public Server() {
 		auctionItems = readItemsFromFile();
@@ -32,7 +36,6 @@ class Server extends Observable {
 
 	public static void main(String[] args) {
 		Server server = new Server();
-		server.auctionItems = server.readItemsFromFile();
 		System.out.println(server.auctionItems);
 		server.runServer();
 	}
@@ -48,79 +51,54 @@ class Server extends Observable {
 
 	private synchronized void setUpNetworking() throws Exception {
 		@SuppressWarnings("resource")
-		ServerSocket serverSock = new ServerSocket(4278);
-		while (true) {
-			Socket clientSocket = serverSock.accept();
-			System.out.println("[server] new client has connected: " + clientSocket);
-			handler = new ClientHandler(this, clientSocket);
-			//addClient(handler);
-			Thread t = new Thread(handler);
-			t.start();
-		}
+		ServerSocket serverSock = new ServerSocket(4280);
+		Socket clientSocket = serverSock.accept();
+		System.out.println("[server] new client has connected: " + clientSocket);
+		ClientHandler handler = new ClientHandler(this, clientSocket);
+		this.addClient(handler);
+		Thread t = new Thread(handler);
+		t.start();
 	}
 
-	protected void processRequest(String input, ClientHandler clientHandler) {
+	protected void processRequest(String input, ClientHandler handler) {
 		System.out.println("[server] got input: " + input);
 		Gson gson = new Gson();
 		Message incomingMessage = gson.fromJson(input, Message.class);
-		System.out.println("line 68");
-		if (incomingMessage.messageType == MessageType.GET_AUCTION_ITEMS) {
-			System.out.println("line 70");
-			Message ret = new Message(MessageType.SEND_AUCTION_ITEMS, auctionItems);
-			clientHandler.sendToClient(ret);
+		System.out.println("[server] incoming message: " + incomingMessage);
+//		if (incomingMessage.messageType == Message.updateAuctionItems) {
+//			String returnAuctionItemMsg = gson.toJson(input, Message.class);
+//			handler.sendToClient(returnAuctionItemMsg);
+//		update master list, and send to clientHandler, and iterate through client handler list for every client
+//		another background thread in every auction window
+//		}
+//		for MessageType.GET_AUCTION_ITEMS
+		if (incomingMessage.messageType == Message.getAuctionItems) {
+			String getAuctionItemsList = gson.toJson(auctionItems);
+			System.out.println("[server] jsonified auction item for GET_AUCTION_ITEMS "+ getAuctionItemsList);
+			Message ret = new Message(MessageType.SEND_AUCTION_ITEMS, getAuctionItemsList);
+			handler.sendMessageToClient(ret);
 		}
-	    // String messageType = incomingMessage.getType();
-		// String[] parts = input.split(" ");
-		// if (messageType.equals("updateAuctionItems")) {
-		// 	String itemsJson = gson.toJson(incomingMessage.getAuctionItems());
-	    //     List<AuctionItem> newItems = gson.fromJson(itemsJson, new TypeToken<List<AuctionItem>>(){}.getType());
-	    //     updateAuctionItems(newItems);
-	    // }
-		// if (parts.length == 3 && parts[0].equals("bid")) {
-		// 	int itemId = Integer.parseInt(parts[1]);
-		// 	String bidAmount = parts[2];
-		// 	boolean validBid = isValidBid(itemId, bidAmount);
-		// 	// if (validBid) {
-		// 	// 	// Notify all clients of new highest bid
-		// 	// 	setChanged();
-		// 	// 	notifyObservers(gson.toJson(new Message("newBid", "", itemId)));
-		// 	// 	// Update the corresponding AuctionItem with the new bid amount
-		// 	// 	for (AuctionItem item : items) {
-		// 	// 		if (item.getAuctionItemId() == itemId) {
-		// 	// 			//item.setHighestBidder(clientHandler.getClientId());
-		// 	// 			item.setHighestBid(String.valueOf(bidAmount));
-		// 	// 			break;
-		// 	// 		}
-		// 	// 	}
-		// 	// }
-		// 	// Send response to client
-		// 	Message outputMessage = new Message("output", Boolean.toString(validBid), 0);
-		// 	clientHandler.sendToClient(outputMessage);
-		// }
-		// else if (parts.length == 1 && parts[0].equals("items")) {
-		// 	String fileName = "items.txt";
-		// 	String fileContent = "";
-		// 	try {
-		// 		BufferedReader reader = new BufferedReader(new FileReader(fileName));
-		// 		String line;
-		// 		while ((line = reader.readLine()) != null) {
-		// 			fileContent += line;
-		// 		}
-		// 		reader.close();
-		// 	} catch (IOException e) {
-		// 		e.printStackTrace();
-		// 	}
-		// 	Message outputMessage = new Message("output", fileContent, 0);
-		// 	clientHandler.sendToClient(outputMessage);
-		// } 
-		// else {
-		// 	String output = "Error: ";
-		// 	clientHandler.sendToClient(new Message("output", output, 0));
-		// }
+//		handle UPDATE_AUCTION_BID
+		else if(incomingMessage.messageType == Message.updateAuctionBid) {
+//			replace auctionItems with this new list
+			auctionItems = incomingMessage.auctionItemsList;
+			String sendUpdatedAuctionBid = gson.toJson(auctionItems);
+			Message ret = new Message(MessageType.UPDATE_AUCTION_BID, sendUpdatedAuctionBid);
+			System.out.println("[server] jsonified auction item list for UPDATE_AUCTION_BID "+ sendUpdatedAuctionBid);	
+//			for handler in clientHandlers, sesndMessageToClient of type SEND_AUCTION_ITEMS and this new updated list
+			for(int i=0;i<clientHandlers.size();i++) {
+				clientHandlers.get(i).sendMessageToClient(ret);
+			}
+		}
+//		TODO PAAWAN
+//		handle UPDATE_AUCTION_BID
+//		replace auctionItems with this new list
+//		for handler in clientHandlers, sendMessageToClient of type SEND_AUCTION_ITEMS and this new updated list
+
 	}
 
 
-	List<AuctionItem> readItemsFromFile() {
+	static List<AuctionItem> readItemsFromFile() {
 		List<AuctionItem> itemList = new ArrayList<>();
 		try (BufferedReader br = new BufferedReader(new FileReader("items.txt"))) {
 			String line;

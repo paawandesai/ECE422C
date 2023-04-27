@@ -19,23 +19,25 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
-public class LoginWindow extends Application {
+public class LoginWindow extends Dialog {
 
     private TextField usernameField;
     private TextField passwordField;
-    private Server server;
-    private Client client;
+    AuctionWindow auctionWindow;
+  
     
-
-    @Override
-    public void start(Stage primaryStage) {
+    public LoginWindow(AuctionWindow auctionWindow) {
+    	this.auctionWindow = auctionWindow;
+   
+    
         // Create the main layout for the login window
-    	primaryStage.setTitle("Login Window");
+    	setTitle("Login Window");
         GridPane grid = new GridPane();
         grid.setPadding(new Insets(10, 10, 10, 10));
         grid.setVgap(5);
@@ -63,8 +65,8 @@ public class LoginWindow extends Application {
 
         // Set up the scene and show the login window
         Scene scene = new Scene(grid, 300, 150);
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        this.getDialogPane().setContent(grid);
+        this.show();
         loginButton.setOnAction(event -> {
             // Get the entered username and password
             String username = usernameField.getText();
@@ -73,18 +75,8 @@ public class LoginWindow extends Application {
             // Validate the credentials
             if (username.equals("admin") && password.equals("password") || username.equals("guest")) {
                 // If the credentials are valid, open the AuctionWindow
-                AuctionWindow auctionWindow = new AuctionWindow();
-                try {
-					auctionWindow.start(new Stage());
-				} catch (UnknownHostException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-                // Close the LoginWindow
-                primaryStage.close();
+            	auctionWindow.showApplication();
+                this.close();
             } else {
                 // If the credentials are invalid, display an error message
                 Alert alert = new Alert(AlertType.ERROR);
@@ -97,7 +89,4 @@ public class LoginWindow extends Application {
     }
 
 
-    public static void main(String[] args) {
-        launch(args);
-    }
 }

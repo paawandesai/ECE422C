@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Observer;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import auction.Server.AuctionItemObserver;
 import javafx.application.Platform;
 
@@ -20,64 +23,54 @@ class ClientHandler implements Runnable, Observer {
 
 	private Server server;
 	private Socket clientSocket;
-	private BufferedReader fromClient;
-	private PrintWriter toClient;
+	BufferedReader fromClient;
+	PrintWriter toClient;
 	private ObjectOutputStream out;
 	private ObjectInputStream in;
 
 	protected ClientHandler(Server server, Socket clientSocket) throws IOException {
 		this.server = server;
 		this.clientSocket = clientSocket;
-		BufferedReader fromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        PrintWriter toClient = new PrintWriter(clientSocket.getOutputStream());
-
 		fromClient = new BufferedReader(new InputStreamReader(this.clientSocket.getInputStream()));
 		toClient = new PrintWriter(this.clientSocket.getOutputStream());
 
 	}
 
-	public void sendToClient(Message message) {
-		System.out.println("Sending to client: " + message);
-		toClient.println(message);
-		toClient.flush();
-	}
-
 	@Override
 	public void run() {
-		System.out.println("[CH] running run() method for CH");
-
-		objectOutput = new ObjectOutputStream(clientSocket.getOutputStream());
-		objectInput = new ObjectInputStream(clientSocket.getInputStream());
-
-		while(true) {
-			String command;
-			command = (String) objectInput.readObject();
-			System.out.println("ch: " +command);
+		System.out.println("[CH]inside run()");
+		String input;
+		try {
+			while ((input = fromClient.readLine()) != null) {
+				System.out.println("[ch] From client: " + input);
+				server.processRequest(input, this);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+		System.out.println("[CH]done with run()");
 
-
-
-		// String input;
-		// try {
-		// 	while ((input = fromClient.readLine()) != null) {
-		// 		System.out.println("[CH]: " + input);
-		// 	}
-		// 	server.processRequest(input, this);
-		// } catch (IOException e) {
-		// 	e.printStackTrace();
-		// }
 	}
+	
+	protected void sendMessageToClient(Message message) {
+		System.out.println("[ch] Sending to client: " + message);
+		GsonBuilder builder = new GsonBuilder();
+		Gson gson = builder.create();
+		toClient.println(gson.toJson(message));
+		toClient.flush();
+	}
+	protected void sendToClient(String string) {
+		System.out.println("[ch] Sending to client: " + string);
+		GsonBuilder builder = new GsonBuilder();
+		Gson gson = builder.create();
+		toClient.println(gson.toJson(string));
+		toClient.flush();
 
-	// @Override
-	// public void onUpdate(AuctionItem item) {
-	// 	// TODO Auto-generated method stub
-
-	// }
+	}
 
 	@Override
 	public void update(Observable o, Object arg) {
-		// TODO Auto-generated method stub
-		
+		this.sendToClient((String) arg);
 	}
 
 }

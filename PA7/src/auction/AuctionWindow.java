@@ -5,6 +5,7 @@
 * <pkd397>
 * <17140>
 * Spring 2023
+* Slip Day Used: 1
 */
 package auction;
 
@@ -33,6 +34,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.lang.reflect.Type;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -42,39 +44,99 @@ import java.util.Timer;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 public class AuctionWindow extends Application {
     private TextField bidAmountField;
     private ListView<AuctionItem> auctionItemsList;
+    LoginWindow loginWindow;
     private Timer auctionTimer;
     private int auctionTimeLeft;
     private JLabel timerLabel;
     private Button bidButton;
     private int highestBid;
+    Stage primaryStage;
+    public static AuctionWindow auctionWindow;
+    Client client;
+	private BufferedReader fromClient;
+	List<AuctionItem> auctionItems;
 
-    List<AuctionItem> auctionItems;
+
 
     
     TableView<AuctionItem> tableView = new TableView<>();
+    public AuctionWindow() {
+    	auctionWindow = this;
+    }
 
 
+    public synchronized void processInput(String input) {    	
+		Gson gson = new Gson();
+		Message message = gson.fromJson(input, Message.class);
+		System.out.println("[aw] decoded message from server: "+message);
+
+		if(message.messageType == MessageType.SEND_AUCTION_ITEMS) {
+			Type listType = new TypeToken<ArrayList<AuctionItem>>(){}.getType();
+			this.auctionItems = gson.fromJson(message.jsonAuctionItems, listType);
+			System.out.println("[aw] list of auction items from client for SEND_AUCTION_ITEMS "+this.auctionItems);
+			Platform.runLater(() -> {
+		        tableView.getItems().setAll(this.auctionItems);
+		    });		
+		}
+		else if(message.messageType == MessageType.UPDATE_AUCTION_BID) {
+			Type listType = new TypeToken<ArrayList<AuctionItem>>(){}.getType();
+			this.auctionItems = gson.fromJson(message.jsonAuctionItems, listType);	
+			System.out.println("[aw] list of auction items from client for UPDATE_AUCTION_BID: "+ this.auctionItems);
+			Platform.runLater(() -> {
+		        tableView.getItems().setAll(this.auctionItems);
+		    });	
+		}
+		
+    }
+    
     @Override
     public void start(Stage primaryStage) throws UnknownHostException, IOException {
-		Socket socket = new Socket("127.0.0.1", 4278);
-        BufferedReader fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        PrintWriter toServer = new PrintWriter(socket.getOutputStream());
-        			
-        Message getItems = new Message(MessageType.GET_AUCTION_ITEMS);
-        System.out.println("[aw] sending GETAUCTIONITEMS ");
-        toServer.println(getItems);
-        toServer.flush();
-		System.out.println(fromServer.readLine());
-        /*
-        fromServer.read();
-        String userInput;
-        while ((userInput = fromServer.readLine()) != null) {
-            System.out.println(userInput);
-            //System.out.println("echo: " + toServer.readLine());
-        }*/
+    	Socket socket = new Socket("127.0.0.1", 4281);
+    	fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    	System.out.println("[aw] Connecting to client " + socket);
+				
+		Thread readerThread = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				System.out.println("[aw][readerThread] inside run()");
+				String input;
+				try {
+					while ((input = fromClient.readLine()) != null) {
+						System.out.println("[aw] From server: " + input);
+						processInput(input);
+					}
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+				System.out.println("[client][readerThread] done with run()");					
+			}
+		});
+		Thread refreshThread = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				System.out.println("[aw][refreshThread] inside run()");
+				while(true) {
+					tableView.refresh();
+				}
+			}
+		});
+		readerThread.start();
+		refreshThread.start();
+    	this.primaryStage = primaryStage;
+    	Message getAuctionItemList = new Message(MessageType.GET_AUCTION_ITEMS);
+    	Client.sendToServer(getAuctionItemList);
+//    	while(this.auctionItems == null) {
+//    		System.out.println("[aw] syncing fn");
+//		}; // bad attempt at syncing
+    	System.out.println("[aw] we have auction items in the right place: "+ this.auctionItems);
 
         // Create the main layout for the auction window
        
@@ -83,8 +145,7 @@ public class AuctionWindow extends Application {
 
         VBox mainLayout = new VBox();
         mainLayout.setPadding(new Insets(10, 10, 10, 10));
-        mainLayout.setSpacing(10);
-        
+        mainLayout.setSpacing(10);        
         //Item ID
         TableColumn<AuctionItem, Integer> idColumn = new TableColumn<>("Item ID");
         idColumn.setCellValueFactory(new PropertyValueFactory<>("auctionItemId"));
@@ -125,7 +186,10 @@ public class AuctionWindow extends Application {
             return cell;
         });
         tableView.getColumns().addAll(idColumn, nameColumn, descriptionColumn, priceColumn, currentBidColumn);
-        tableView.getItems().addAll(auctionItems);
+        if(auctionItems != null) {
+        	tableView.getItems().addAll(auctionItems);
+        }
+       
         mainLayout.getChildren().add(tableView);
       
      
@@ -168,6 +232,10 @@ public class AuctionWindow extends Application {
                     Alert alert2 = new Alert(Alert.AlertType.ERROR, "Bid amount must be higher than current highest bid and at least 1% higher than start price.", ButtonType.OK);
                     alert2.showAndWait();
                 }
+                else if(bidAmount >= Double.parseDouble(selectedItem.getStartPrice())*10){
+                	Alert alert3 = new Alert(Alert.AlertType.INFORMATION, "Buy it now price! This item has been sold", ButtonType.OK);
+                	alert3.showAndWait();
+                }
                 
             } catch (NumberFormatException e) {
                 // Invalid bid amount, show an error message and return
@@ -178,17 +246,31 @@ public class AuctionWindow extends Application {
             	    alert1.showAndWait();
             }
 
-            // Update the highest bid of the selected item
+//          update the auctionItem list with the new bid - done
             selectedItem.setHighestBid(bidAmountString);
-
-            // Update the TableView to display the new highest bid
+            System.out.println("[aw] selected item: " + selectedItem);
+            for(int i=0;i<auctionItems.size();i++) {
+            	if(auctionItems.get(i).auctionItemId == selectedItem.auctionItemId) {
+            		auctionItems.set(i, selectedItem);
+            	}
+            }
+            Message message = new Message(MessageType.UPDATE_AUCTION_BID, this.auctionItems);
+            System.out.println("[aw] sending list of auction items with updated bid: " + message.auctionItemsList);
+            Client.sendToServer(message);
             tableView.refresh();
+//            TODO PAAWAN
+//            1 update the auctionItem list with the new bid - done
+//            2 send a Message with the updated AuctioItem list, type UPDATE_AUCTION_BID using Client.sendToServer
+//            ?? put refresh in a background loop happening every 5 seconds?
+            
 
-            // Update the server with the new bid
-            //Message message = new Message(Message.updateAuctionItems, "");
-            //System.out.println(message);
-            // client.sendToServer(message);
-            tableView.refresh();
+            
+            //send only specific item changed - done
+            //update Clients local list - done
+            // send that specific item to central list
+            // send via server to all clients the updated list
+            //send currentBidder to the client if the currentBidder is the highestBidder(defined on Server) compared to main list maintained on Server
+            
             
         });
 
@@ -199,27 +281,21 @@ public class AuctionWindow extends Application {
         // Set up the scene and show the auction window
         Scene scene = new Scene(mainLayout, 600, 600);
         primaryStage.setScene(scene);
-        primaryStage.show();
+        loginWindow = new LoginWindow(this);
+        
     }
-    public void updateAuctionItem(AuctionItem item) {
-        Platform.runLater(() -> {
-        	ObservableList<AuctionItem> items = auctionItemsList.getItems();
-            for (int i = 0; i < items.size(); i++) {
-                if (items.get(i).getAuctionItemId().equals(item.getAuctionItemId())) {
-                	items.set(i, item);
-                    tableView.refresh();
-                    break;
-                }
-            }
-        });
-    }
+   
     public TableView<AuctionItem> getTableView() {
         return tableView;
+    }
+    public void showApplication() {
+    	primaryStage.show();
     }
 
 
 
     public static void main(String[] args) {
+
         launch(args);
     }
 }

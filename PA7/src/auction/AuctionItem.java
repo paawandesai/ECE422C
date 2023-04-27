@@ -5,6 +5,7 @@
 * <pkd397>
 * <17140>
 * Spring 2023
+* Slip Day Used: 1
 */
 package auction;
 
@@ -29,6 +30,7 @@ public class AuctionItem {
     private int delay = 300000; // 5 minutes
     private Timer timer;
     private List<AuctionItemObserver> observers = new ArrayList<>();
+    
 
     public AuctionItem(Integer auctionItemId, String name, String description, String startPrice) {
         this.auctionItemId = auctionItemId;
@@ -36,8 +38,10 @@ public class AuctionItem {
         this.description = description;
         this.startPrice = startPrice;
         this.highestBid = startPrice;
-        this.highestBidderId = null;
-        this.sold = false;
+        //this.bids = new ArrayList<>();
+        this.closed = false;
+        //this.timer = new Timer();
+        //this.timer.schedule(new CloseTask(), 20000);
     }
 
     public Integer getAuctionItemId() {
