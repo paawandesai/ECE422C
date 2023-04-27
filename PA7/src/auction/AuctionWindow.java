@@ -97,7 +97,11 @@ public class AuctionWindow extends Application {
     
     @Override
     public void start(Stage primaryStage) throws UnknownHostException, IOException {
-    	Socket socket = new Socket("127.0.0.1", 4281);
+    	List<String> params = getParameters().getRaw();
+    	System.out.println("[aw] params: "+params);
+    	int port = Integer.parseInt(params.get(0));
+    	
+    	Socket socket = new Socket("127.0.0.1", port);
     	fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
     	System.out.println("[aw] Connecting to client " + socket);
 				
@@ -108,7 +112,6 @@ public class AuctionWindow extends Application {
 				String input;
 				try {
 					while ((input = fromClient.readLine()) != null) {
-						System.out.println("[aw] From server: " + input);
 						processInput(input);
 					}
 					
@@ -133,9 +136,7 @@ public class AuctionWindow extends Application {
     	this.primaryStage = primaryStage;
     	Message getAuctionItemList = new Message(MessageType.GET_AUCTION_ITEMS);
     	Client.sendToServer(getAuctionItemList);
-//    	while(this.auctionItems == null) {
-//    		System.out.println("[aw] syncing fn");
-//		}; // bad attempt at syncing
+
     	System.out.println("[aw] we have auction items in the right place: "+ this.auctionItems);
 
         // Create the main layout for the auction window
@@ -295,7 +296,6 @@ public class AuctionWindow extends Application {
 
 
     public static void main(String[] args) {
-
         launch(args);
     }
 }

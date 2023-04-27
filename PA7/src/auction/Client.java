@@ -30,7 +30,7 @@ import javafx.application.Platform;
 import javafx.stage.Stage;
 import java.lang.reflect.Type;
 import com.google.gson.reflect.TypeToken;
-
+import java.util.Random;
 
 class Client {
 
@@ -50,24 +50,22 @@ class Client {
 	}
 
 
-	private void setUpNetworking() throws Exception {
+	private void setUpNetworking(int aw_port) throws Exception {
 		@SuppressWarnings("resource")
 		Socket socket = new Socket(host, 4280);
 		System.out.println("Connecting to... " + socket);
 		fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		toServer = new PrintWriter(socket.getOutputStream());
 		
-		
-		
-
 		Thread waiter = new Thread(new Runnable() {
 
 			@Override
 			public void run() {
 				try {
-					ServerSocket serverSock = new ServerSocket(4281);
+					@SuppressWarnings("resource")
+					ServerSocket serverSock = new ServerSocket(aw_port);
 					Socket clientSocket = serverSock.accept();
-					System.out.println("Connecting to... " + clientSocket);
+					System.out.println("[client] Connecting to AW " + clientSocket);
 					toAuctionWindow = new PrintWriter(clientSocket.getOutputStream());
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -146,10 +144,15 @@ class Client {
 
 	public static void main(String[] args) {
 		try {
+			Random rand = new Random();
+			int int_port = 4000+rand.nextInt(100);
 			Client client = new Client();
-			client.setUpNetworking();		
+			client.setUpNetworking(int_port);	
 
-			javafx.application.Application.launch(AuctionWindow.class);
+			String port = String.valueOf(int_port);
+			
+			System.out.println("[client] port to talk to AW is: "+port);
+			javafx.application.Application.launch(AuctionWindow.class, port);
 
 		} catch (Exception e) {
 			e.printStackTrace();
